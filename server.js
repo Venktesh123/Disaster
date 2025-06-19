@@ -4,11 +4,13 @@ const helmet = require("helmet");
 const compression = require("compression");
 const { createServer } = require("http");
 const { Server } = require("socket.io");
-require("dotenv").config();
+
+// Load environment variables
+if (process.env.NODE_ENV !== "production") {
+  require("dotenv").config();
+}
 
 const logger = require("./utils/logger");
-const rateLimiter = require("./middleware/rateLimiter");
-const socketHandlers = require("./sockets/socketHandlers");
 
 // Route imports
 const disastersRouter = require("./routes/disasters");
@@ -20,32 +22,49 @@ const verificationRouter = require("./routes/verification");
 
 const app = express();
 const server = createServer(app);
+
+// CORS configuration
+const corsOptions = {
+  origin:
+    process.env.NODE_ENV === "production"
+      ? [
+          process.env.FRONTEND_URL || "https://your-frontend-domain.vercel.app",
+          "https://*.vercel.app",
+        ]
+      : ["http://localhost:3000", "http://localhost:5173"],
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "x-user-id"],
+};
+
 const io = new Server(server, {
-  cors: {
-    origin:
-      process.env.NODE_ENV === "production"
-        ? ["https://your-frontend-domain.com"]
-        : ["http://localhost:3000", "http://localhost:5173"],
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true,
-  },
+  cors: corsOptions,
 });
 
 // Middleware
-app.use(helmet());
-app.use(compression());
 app.use(
-  cors({
-    origin:
-      process.env.NODE_ENV === "production"
-        ? ["https://your-frontend-domain.com"]
-        : ["http://localhost:3000", "http://localhost:5173"],
-    credentials: true,
+  helmet({
+    contentSecurityPolicy: false, // Disable CSP for API
   })
 );
+app.use(compression());
+app.use(cors(corsOptions));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
-app.use(rateLimiter);
+
+// Rate limiting only in production
+if (process.env.NODE_ENV === "production") {
+  const rateLimit = require("express-rate-limit");
+  const limiter = rateLimit({
+    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
+    max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
+    message: {
+      success: false,
+      error: "Too many requests, please try again later",
+    },
+  });
+  app.use(limiter);
+}
 
 // Make io accessible to routes
 app.use((req, res, next) => {
@@ -53,13 +72,25 @@ app.use((req, res, next) => {
   next();
 });
 
-// Routes
-app.use("/api/disasters", disastersRouter);
-app.use("/api/reports", reportsRouter);
-app.use("/api/resources", resourcesRouter);
-app.use("/api/social-media", socialMediaRouter);
-app.use("/api/geocoding", geocodingRouter);
-app.use("/api/verification", verificationRouter);
+// Root route - IMPORTANT for Vercel
+app.get("/", (req, res) => {
+  res.json({
+    message: "Disaster Response API",
+    version: "1.0.0",
+    environment: process.env.NODE_ENV || "development",
+    status: "OK",
+    timestamp: new Date().toISOString(),
+    endpoints: {
+      health: "/api/health",
+      disasters: "/api/disasters",
+      reports: "/api/reports",
+      resources: "/api/resources",
+      socialMedia: "/api/social-media",
+      geocoding: "/api/geocoding",
+      verification: "/api/verification",
+    },
+  });
+});
 
 // Health check
 app.get("/api/health", (req, res) => {
@@ -67,8 +98,18 @@ app.get("/api/health", (req, res) => {
     status: "OK",
     timestamp: new Date().toISOString(),
     version: "1.0.0",
+    environment: process.env.NODE_ENV || "development",
+    server: "Vercel",
   });
 });
+
+// API Routes
+app.use("/api/disasters", disastersRouter);
+app.use("/api/reports", reportsRouter);
+app.use("/api/resources", resourcesRouter);
+app.use("/api/social-media", socialMediaRouter);
+app.use("/api/geocoding", geocodingRouter);
+app.use("/api/verification", verificationRouter);
 
 // Mock social media endpoint
 app.get("/api/mock-social-media", (req, res) => {
@@ -102,7 +143,7 @@ app.get("/api/mock-social-media", (req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  logger.error("Error:", {
+  console.error("Error:", {
     message: err.message,
     stack: err.stack,
     url: req.url,
@@ -118,22 +159,42 @@ app.use((err, req, res, next) => {
   });
 });
 
-// 404 handler
+// 404 handler - IMPORTANT: This should be last
 app.use("*", (req, res) => {
   res.status(404).json({
     success: false,
     error: "Route not found",
+    requested_path: req.originalUrl,
+    available_routes: [
+      "/",
+      "/api/health",
+      "/api/disasters",
+      "/api/reports",
+      "/api/resources",
+      "/api/social-media",
+      "/api/geocoding",
+      "/api/verification",
+      "/api/mock-social-media",
+    ],
   });
 });
 
 // Socket.IO connection handling
-socketHandlers(io);
+if (process.env.NODE_ENV !== "production") {
+  // Socket.IO doesn't work well with Vercel serverless functions
+  const socketHandlers = require("./sockets/socketHandlers");
+  socketHandlers(io);
+}
 
 const PORT = process.env.PORT || 3001;
 
-server.listen(PORT, () => {
-  logger.info(`Server running on port ${PORT}`);
-  logger.info(`Environment: ${process.env.NODE_ENV}`);
-});
+// Local development server
+if (process.env.NODE_ENV !== "production") {
+  server.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+    console.log(`Environment: ${process.env.NODE_ENV}`);
+  });
+}
 
-module.exports = { app, server, io };
+// Export for Vercel
+module.exports = app;

@@ -18,3 +18,11 @@
 {"level":"info","message":"Socket.IO handlers initialized","service":"disaster-response-backend","timestamp":"2025-06-19T04:49:02.747Z"}
 {"level":"info","message":"Server running on port 5000","service":"disaster-response-backend","timestamp":"2025-06-19T04:49:02.752Z"}
 {"level":"info","message":"Environment: development","service":"disaster-response-backend","timestamp":"2025-06-19T04:49:02.760Z"}
+{"level":"info","message":"Socket.IO handlers initialized","service":"disaster-response-backend","timestamp":"2025-06-19T04:50:39.429Z"}
+{"level":"info","message":"Server running on port 5000","service":"disaster-response-backend","timestamp":"2025-06-19T04:50:39.436Z"}
+{"level":"info","message":"Environment: development","service":"disaster-response-backend","timestamp":"2025-06-19T04:50:39.436Z"}
+{"level":"info","message":"Socket.IO handlers initialized","service":"disaster-response-backend","timestamp":"2025-06-19T05:09:09.868Z"}
+{"level":"info","message":"Server running on port 5000","service":"disaster-response-backend","timestamp":"2025-06-19T05:09:09.873Z"}
+{"level":"info","message":"Environment: development","service":"disaster-response-backend","timestamp":"2025-06-19T05:09:09.873Z"}
+{"level":"info","message":"Socket.IO handlers initialized","service":"disaster-response-backend","timestamp":"2025-06-19T05:09:33.462Z"}
+{"level":"info","message":"Socket.IO handlers initialized","service":"disaster-response-backend","timestamp":"2025-06-19T05:09:53.965Z"}
