@@ -1,0 +1,3 @@
+{"level":"info","message":"Socket.IO handlers initialized","service":"disaster-response-backend","timestamp":"2025-06-19T04:09:42.099Z"}
+{"level":"info","message":"Server running on port 5000","service":"disaster-response-backend","timestamp":"2025-06-19T04:09:42.103Z"}
+{"level":"info","message":"Environment: development","service":"disaster-response-backend","timestamp":"2025-06-19T04:09:42.104Z"}
