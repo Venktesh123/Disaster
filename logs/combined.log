@@ -1,3 +1,20 @@
 {"level":"info","message":"Socket.IO handlers initialized","service":"disaster-response-backend","timestamp":"2025-06-19T04:09:42.099Z"}
 {"level":"info","message":"Server running on port 5000","service":"disaster-response-backend","timestamp":"2025-06-19T04:09:42.103Z"}
 {"level":"info","message":"Environment: development","service":"disaster-response-backend","timestamp":"2025-06-19T04:09:42.104Z"}
+{"level":"info","message":"Socket.IO handlers initialized","service":"disaster-response-backend","timestamp":"2025-06-19T04:27:06.593Z"}
+{"level":"info","message":"Server running on port 5000","service":"disaster-response-backend","timestamp":"2025-06-19T04:27:06.597Z"}
+{"level":"info","message":"Environment: development","service":"disaster-response-backend","timestamp":"2025-06-19T04:27:06.598Z"}
+{"level":"info","message":"Retrieved 3 disasters","service":"disaster-response-backend","timestamp":"2025-06-19T04:36:26.709Z"}
+{"level":"info","message":"User authenticated: citizen1","service":"disaster-response-backend","timestamp":"2025-06-19T04:39:37.236Z"}
+{"level":"error","message":"Gemini location extraction error:","service":"disaster-response-backend","timestamp":"2025-06-19T04:39:39.739Z"}
+{"level":"warn","message":"Gemini location extraction failed:","service":"disaster-response-backend","timestamp":"2025-06-19T04:39:39.741Z"}
+{"level":"error","message":"Mapbox geocoding error:","service":"disaster-response-backend","timestamp":"2025-06-19T04:39:41.247Z"}
+{"level":"debug","message":"Cache set: geocode:Los Angeles, CA","service":"disaster-response-backend","timestamp":"2025-06-19T04:39:42.807Z"}
+{"level":"info","message":"Geocoded: Los Angeles, CA -> 34.0536909, -118.242766","service":"disaster-response-backend","timestamp":"2025-06-19T04:39:42.808Z"}
+{"level":"info","message":"Disaster created: d3831476-b554-4625-941b-36451483e537 by citizen1","service":"disaster-response-backend","timestamp":"2025-06-19T04:39:43.328Z"}
+{"level":"info","message":"Socket.IO handlers initialized","service":"disaster-response-backend","timestamp":"2025-06-19T04:48:50.164Z"}
+{"level":"info","message":"Server running on port 5000","service":"disaster-response-backend","timestamp":"2025-06-19T04:48:50.170Z"}
+{"level":"info","message":"Environment: development","service":"disaster-response-backend","timestamp":"2025-06-19T04:48:50.171Z"}
+{"level":"info","message":"Socket.IO handlers initialized","service":"disaster-response-backend","timestamp":"2025-06-19T04:49:02.747Z"}
+{"level":"info","message":"Server running on port 5000","service":"disaster-response-backend","timestamp":"2025-06-19T04:49:02.752Z"}
+{"level":"info","message":"Environment: development","service":"disaster-response-backend","timestamp":"2025-06-19T04:49:02.760Z"}

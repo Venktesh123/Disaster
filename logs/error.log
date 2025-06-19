@@ -1,0 +1,2 @@
+{"level":"error","message":"Gemini location extraction error:","service":"disaster-response-backend","timestamp":"2025-06-19T04:39:39.739Z"}
+{"level":"error","message":"Mapbox geocoding error:","service":"disaster-response-backend","timestamp":"2025-06-19T04:39:41.247Z"}
