@@ -4,7 +4,7 @@ const helmet = require("helmet");
 const compression = require("compression");
 const { createServer } = require("http");
 const { Server } = require("socket.io");
-
+app.use(cors());
 // Load environment variables
 if (process.env.NODE_ENV !== "production") {
   require("dotenv").config();
