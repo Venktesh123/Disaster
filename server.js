@@ -4,7 +4,7 @@ const helmet = require("helmet");
 const compression = require("compression");
 const { createServer } = require("http");
 const { Server } = require("socket.io");
-app.use(cors());
+
 // Load environment variables
 if (process.env.NODE_ENV !== "production") {
   require("dotenv").config();
@@ -23,28 +23,28 @@ const verificationRouter = require("./routes/verification");
 const app = express();
 const server = createServer(app);
 
-// CORS configuration
+// CORS configuration - Allow all origins
 const corsOptions = {
-  origin:
-    process.env.NODE_ENV === "production"
-      ? [
-          process.env.FRONTEND_URL || "https://your-frontend-domain.vercel.app",
-          "https://*.vercel.app",
-        ]
-      : ["http://localhost:3000", "http://localhost:5173"],
-  credentials: true,
+  origin: "*", // Allow all origins
+  credentials: false, // Set to false when using origin: "*"
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "x-user-id"],
+  optionsSuccessStatus: 200 // Some legacy browsers (IE11, various SmartTVs) choke on 204
 };
 
 const io = new Server(server, {
-  cors: corsOptions,
+  cors: {
+    origin: "*", // Allow all origins for Socket.IO
+    methods: ["GET", "POST"],
+    credentials: false
+  }
 });
 
 // Middleware
 app.use(
   helmet({
     contentSecurityPolicy: false, // Disable CSP for API
+    crossOriginEmbedderPolicy: false // Disable COEP for better compatibility
   })
 );
 app.use(compression());
