@@ -1,5 +1,18 @@
-// utils/logger.js - Fixed for Vercel deployment
-const winston = require("winston");
+// utils/logger.js - Vercel compatible logger
+let winston;
+try {
+  winston = require("winston");
+} catch (error) {
+  // Fallback if winston is not available
+  console.warn("Winston not available, using console logger");
+  module.exports = {
+    info: console.log,
+    warn: console.warn,
+    error: console.error,
+    debug: console.log,
+  };
+  return;
+}
 
 // Create logger configuration that works in serverless environments
 const logger = winston.createLogger({
@@ -23,13 +36,12 @@ const logger = winston.createLogger({
 
 // Only add file transports in local development (not in Vercel)
 if (process.env.NODE_ENV !== "production" && !process.env.VERCEL) {
-  // Check if logs directory exists, create if not (only in local dev)
-  const fs = require("fs");
-  const path = require("path");
-
-  const logsDir = path.join(process.cwd(), "logs");
-
   try {
+    const fs = require("fs");
+    const path = require("path");
+
+    const logsDir = path.join(process.cwd(), "logs");
+
     if (!fs.existsSync(logsDir)) {
       fs.mkdirSync(logsDir, { recursive: true });
     }
@@ -56,11 +68,43 @@ if (process.env.NODE_ENV !== "production" && !process.env.VERCEL) {
   }
 }
 
+// Add error handling to prevent crashes
+const safeLogger = {
+  info: (message, ...args) => {
+    try {
+      logger.info(message, ...args);
+    } catch (error) {
+      console.log(message, ...args);
+    }
+  },
+  warn: (message, ...args) => {
+    try {
+      logger.warn(message, ...args);
+    } catch (error) {
+      console.warn(message, ...args);
+    }
+  },
+  error: (message, ...args) => {
+    try {
+      logger.error(message, ...args);
+    } catch (error) {
+      console.error(message, ...args);
+    }
+  },
+  debug: (message, ...args) => {
+    try {
+      logger.debug(message, ...args);
+    } catch (error) {
+      console.log(message, ...args);
+    }
+  },
+};
+
 // Log startup information
 if (process.env.NODE_ENV === "production") {
-  logger.info("Logger initialized for production (console only)");
+  safeLogger.info("Logger initialized for production (console only)");
 } else {
-  logger.info("Logger initialized for development (console + files)");
+  safeLogger.info("Logger initialized for development");
 }
 
-module.exports = logger;
+module.exports = safeLogger;
