@@ -5,7 +5,7 @@ const compression = require("compression");
 const { createServer } = require("http");
 const { Server } = require("socket.io");
 
-// Load environment variables
+// Load environment variables FIRST
 if (process.env.NODE_ENV !== "production") {
   require("dotenv").config();
 }
@@ -27,28 +27,41 @@ const server = createServer(app);
 const corsOptions = {
   origin: "*", // Allow all origins
   credentials: false, // Set to false when using origin: "*"
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "x-user-id"],
-  optionsSuccessStatus: 200 // Some legacy browsers (IE11, various SmartTVs) choke on 204
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "x-user-id",
+    "Origin",
+    "X-Requested-With",
+    "Accept",
+  ],
+  optionsSuccessStatus: 200,
 };
 
+// Socket.IO configuration
 const io = new Server(server, {
   cors: {
-    origin: "*", // Allow all origins for Socket.IO
+    origin: "*",
     methods: ["GET", "POST"],
-    credentials: false
-  }
+    credentials: false,
+  },
 });
 
-// Middleware
+// Apply CORS before other middleware
+app.use(cors(corsOptions));
+
+// Handle preflight requests explicitly
+app.options("*", cors(corsOptions));
+
+// Other middleware
 app.use(
   helmet({
-    contentSecurityPolicy: false, // Disable CSP for API
-    crossOriginEmbedderPolicy: false // Disable COEP for better compatibility
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
   })
 );
 app.use(compression());
-app.use(cors(corsOptions));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
@@ -57,11 +70,13 @@ if (process.env.NODE_ENV === "production") {
   const rateLimit = require("express-rate-limit");
   const limiter = rateLimit({
     windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
-    max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
+    max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 1000, // Increased limit
     message: {
       success: false,
       error: "Too many requests, please try again later",
     },
+    standardHeaders: true,
+    legacyHeaders: false,
   });
   app.use(limiter);
 }
@@ -80,6 +95,7 @@ app.get("/", (req, res) => {
     environment: process.env.NODE_ENV || "development",
     status: "OK",
     timestamp: new Date().toISOString(),
+    cors: "enabled-all-origins",
     endpoints: {
       health: "/api/health",
       disasters: "/api/disasters",
@@ -100,6 +116,7 @@ app.get("/api/health", (req, res) => {
     version: "1.0.0",
     environment: process.env.NODE_ENV || "development",
     server: "Vercel",
+    cors: "all-origins-allowed",
   });
 });
 
@@ -150,6 +167,14 @@ app.use((err, req, res, next) => {
     method: req.method,
   });
 
+  // Ensure CORS headers are present even in error responses
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization, x-user-id"
+  );
+
   res.status(err.status || 500).json({
     success: false,
     error:
@@ -165,6 +190,7 @@ app.use("*", (req, res) => {
     success: false,
     error: "Route not found",
     requested_path: req.originalUrl,
+    method: req.method,
     available_routes: [
       "/",
       "/api/health",
@@ -179,11 +205,14 @@ app.use("*", (req, res) => {
   });
 });
 
-// Socket.IO connection handling
+// Socket.IO connection handling (only in development)
 if (process.env.NODE_ENV !== "production") {
-  // Socket.IO doesn't work well with Vercel serverless functions
-  const socketHandlers = require("./sockets/socketHandlers");
-  socketHandlers(io);
+  try {
+    const socketHandlers = require("./sockets/socketHandlers");
+    socketHandlers(io);
+  } catch (error) {
+    console.warn("Socket handlers not loaded:", error.message);
+  }
 }
 
 const PORT = process.env.PORT || 3001;
@@ -191,8 +220,9 @@ const PORT = process.env.PORT || 3001;
 // Local development server
 if (process.env.NODE_ENV !== "production") {
   server.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-    console.log(`Environment: ${process.env.NODE_ENV}`);
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`📍 Environment: ${process.env.NODE_ENV}`);
+    console.log(`🌐 CORS: All origins allowed`);
   });
 }
 
